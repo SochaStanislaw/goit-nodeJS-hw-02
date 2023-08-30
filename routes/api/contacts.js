@@ -51,29 +51,6 @@ router.post("/", async (req, res, next) => {
   }
 });
 
-// router.post("/", async (req, res, next) => {
-//   try {
-//     const { name, email, phone } = req.body;
-//     const { error } = contactSchema.validate({ name, email, phone });
-
-//     if (error) {
-//       res.status(400).json({ message: "missing required name - field" });
-//       return;
-//     }
-
-//     const newContact = await addContact({
-//       id: await nanoid(),
-//       name,
-//       email,
-//       phone,
-//     });
-
-//     res.status(201).json(newContact);
-//   } catch (error) {
-//     next(error);
-//   }
-// });
-
 router.delete("/:contactId", async (req, res, next) => {
   try {
     const contactId = req.params.contactId;

@@ -12,11 +12,6 @@ const listContacts = async () => {
 const getContactById = async (contactId) => {
   const contacts = await listContacts();
   return contacts.find((contact) => contact.id === contactId) || null;
-  // const contact = contacts.find((contact) => contact.id === contactId);
-
-  // if (contact) {
-  //   return contact;
-  // }
 };
 
 const removeContact = async (contactId) => {
