@@ -13,7 +13,7 @@ const { contactSchema } = require("../../models/validation");
 router.get("/", async (req, res, next) => {
   try {
     const contacts = await listContacts();
-    res.json(contacts);
+    res.status(200).json(contacts);
   } catch (error) {
     next(error);
   }
