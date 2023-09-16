@@ -16,25 +16,15 @@ const contactSchema = new mongoose.Schema({
   },
 });
 
-const Contact = mongoose.model("Contact", contactSchema);
+const Contact = mongoose.model("contacts", contactSchema);
 
 const listContacts = async () => {
   return await Contact.find().exec();
 };
 
-export const getContactById = async (contactId) => {
-  try {
-    console.log("Searching for contact with ID:", contactId); // Dodaj ten log
-    return await Contact.findOne({ _id: contactId });
-  } catch (err) {
-    console.log(`Error getting contact with id ${contactId}: `, err);
-    throw err;
-  }
+const getContactById = async (contactId) => {
+  return await Contact.findById({ _id: contactId }).exec();
 };
-
-// const getContactById = async (contactId) => {
-//   return await Contact.findById({ _id: contactId }).exec();
-// };
 
 const removeContact = async (contactId) => {
   return await Contact.findByIdAndRemove(contactId).exec();
