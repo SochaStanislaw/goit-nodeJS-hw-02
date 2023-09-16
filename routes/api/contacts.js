@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+
 const {
   listContacts,
   getContactById,
@@ -8,6 +9,7 @@ const {
   updateContact,
   updateStatusContact,
 } = require("../../models/contacts");
+
 const { contactSchema } = require("../../models/validation");
 
 router.get("/", async (req, res, next) => {
@@ -22,6 +24,8 @@ router.get("/", async (req, res, next) => {
 router.get("/:contactId", async (req, res, next) => {
   try {
     const contactId = req.params.contactId;
+    console.log("Received contactId:", contactId); // Dodaj ten log
+
     const contact = await getContactById(contactId);
 
     if (contact) {
@@ -33,6 +37,21 @@ router.get("/:contactId", async (req, res, next) => {
     next(error);
   }
 });
+
+// router.get("/:contactId", async (req, res, next) => {
+//   try {
+//     const contactId = req.params.contactId;
+//     const contact = await getContactById(contactId);
+
+//     if (contact) {
+//       res.status(200).json(contact);
+//     } else {
+//       res.status(404).json({ message: "Not found xD" });
+//     }
+//   } catch (error) {
+//     next(error);
+//   }
+// });
 
 router.post("/", async (req, res, next) => {
   try {
@@ -59,7 +78,7 @@ router.delete("/:contactId", async (req, res, next) => {
     if (success) {
       res.status(200).json({ message: "contact deleted" });
     } else {
-      res.status(404).json({ message: "Not found" });
+      res.status(404).json({ message: "Not found xxddd" });
     }
   } catch (error) {
     next(error);
@@ -86,7 +105,7 @@ router.put("/:contactId", async (req, res, next) => {
     if (updatedContact) {
       res.status(200).json(updatedContact);
     } else {
-      res.status(404).json({ message: "Not found" });
+      res.status(404).json({ message: "Not found XD" });
     }
   } catch (error) {
     next(error);
@@ -108,7 +127,7 @@ router.patch("/:contactId/favorite", async (req, res, next) => {
     if (updatedContact) {
       res.status(200).json(updatedContact);
     } else {
-      res.status(404).json({ message: "Not found" });
+      res.status(404).json({ message: "Not found xDDD" });
     }
   } catch (error) {
     next(error);
