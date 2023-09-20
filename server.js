@@ -1,11 +1,12 @@
 const mongoose = require("mongoose");
 const app = require("./app");
+require("dotenv").config();
 
 mongoose
-  .connect(
-    "mongodb+srv://sta_soc:cGk4PmaJDT09kq2J@hw03-mongodb-cluster.8z2pqii.mongodb.net/db-contacts",
-    { useNewUrlParser: true, useUnifiedTopology: true }
-  )
+  .connect(process.env.DB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => {
     console.log("Database connection successful");
     app.listen(3000, () => {

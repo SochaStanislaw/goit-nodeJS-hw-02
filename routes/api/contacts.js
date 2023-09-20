@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-
 const {
   listContacts,
   getContactById,
@@ -9,19 +8,34 @@ const {
   updateContact,
   updateStatusContact,
 } = require("../../models/contacts");
-
 const { contactSchema } = require("../../models/validation");
+const authenticate = require("../../middleware/authenticate");
 
-router.get("/", async (req, res, next) => {
+// get the contact' list
+router.get("/", authenticate, async (req, res, next) => {
   try {
-    const contacts = await listContacts();
+    // add pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const contacts = await listContacts(page, limit);
+
     res.status(200).json(contacts);
   } catch (error) {
     next(error);
   }
 });
 
-router.get("/:contactId", async (req, res, next) => {
+// router.get("/", authenticate, async (req, res, next) => {
+//   try {
+//     const contacts = await listContacts();
+//     res.status(200).json(contacts);
+//   } catch (error) {
+//     next(error);
+//   }
+// });
+
+// get the contact by id
+router.get("/:contactId", authenticate, async (req, res, next) => {
   try {
     const contactId = req.params.contactId;
     const contact = await getContactById(contactId);
@@ -36,30 +50,34 @@ router.get("/:contactId", async (req, res, next) => {
   }
 });
 
-router.post("/", async (req, res, next) => {
+// make new contact endpoint
+router.post("/", authenticate, async (req, res, next) => {
   try {
     const { name, email, phone } = req.body;
+    const owner = req.user._id;
+
     const { error } = contactSchema.validate({ name, email, phone });
 
     if (error) {
-      res.status(400).json({ message: "missing required name - field" });
+      res.status(400).json({ message: "Validation error" });
       return;
     }
 
-    const newContact = await addContact({ name, email, phone });
+    const newContact = await addContact({ name, email, phone, owner });
     res.status(201).json(newContact);
   } catch (error) {
     next(error);
   }
 });
 
-router.delete("/:contactId", async (req, res, next) => {
+// delete contact by id
+router.delete("/:contactId", authenticate, async (req, res, next) => {
   try {
     const contactId = req.params.contactId;
     const success = await removeContact(contactId);
 
     if (success) {
-      res.status(200).json({ message: "contact deleted" });
+      res.status(200).json({ message: "Contact deleted" });
     } else {
       res.status(404).json({ message: "Not found" });
     }
@@ -68,14 +86,15 @@ router.delete("/:contactId", async (req, res, next) => {
   }
 });
 
-router.put("/:contactId", async (req, res, next) => {
+// update contact by id
+router.put("/:contactId", authenticate, async (req, res, next) => {
   try {
     const contactId = req.params.contactId;
     const { name, email, phone } = req.body;
     const { error } = contactSchema.validate({ name, email, phone });
 
     if (error) {
-      res.status(400).json({ message: "missing fields" });
+      res.status(400).json({ message: "Validation error" });
       return;
     }
 
@@ -95,13 +114,14 @@ router.put("/:contactId", async (req, res, next) => {
   }
 });
 
-router.patch("/:contactId/favorite", async (req, res, next) => {
+// Update favorites option contact by id
+router.patch("/:contactId/favorite", authenticate, async (req, res, next) => {
   try {
     const contactId = req.params.contactId;
     const { favorite } = req.body;
 
     if (typeof favorite !== "boolean") {
-      res.status(400).json({ message: "missing field favorite" });
+      res.status(400).json({ message: "Validation error" });
       return;
     }
 
