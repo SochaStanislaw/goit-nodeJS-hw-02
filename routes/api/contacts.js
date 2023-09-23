@@ -9,33 +9,20 @@ const {
   updateStatusContact,
 } = require("../../models/contacts");
 const { contactSchema } = require("../../models/validation");
-const authenticate = require("../../middleware/authenticate");
+const auth = require("../../middleware/auth");
 
 // get the contact' list
-router.get("/", authenticate, async (req, res, next) => {
+router.get("/", auth, async (req, res, next) => {
   try {
-    // add pagination
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
-    const contacts = await listContacts(page, limit);
-
+    const contacts = await listContacts();
     res.status(200).json(contacts);
   } catch (error) {
     next(error);
   }
 });
 
-// router.get("/", authenticate, async (req, res, next) => {
-//   try {
-//     const contacts = await listContacts();
-//     res.status(200).json(contacts);
-//   } catch (error) {
-//     next(error);
-//   }
-// });
-
 // get the contact by id
-router.get("/:contactId", authenticate, async (req, res, next) => {
+router.get("/:contactId", auth, async (req, res, next) => {
   try {
     const contactId = req.params.contactId;
     const contact = await getContactById(contactId);
@@ -51,7 +38,7 @@ router.get("/:contactId", authenticate, async (req, res, next) => {
 });
 
 // make new contact endpoint
-router.post("/", authenticate, async (req, res, next) => {
+router.post("/", auth, async (req, res, next) => {
   try {
     const { name, email, phone } = req.body;
     const owner = req.user._id;
@@ -71,7 +58,7 @@ router.post("/", authenticate, async (req, res, next) => {
 });
 
 // delete contact by id
-router.delete("/:contactId", authenticate, async (req, res, next) => {
+router.delete("/:contactId", auth, async (req, res, next) => {
   try {
     const contactId = req.params.contactId;
     const success = await removeContact(contactId);
@@ -87,7 +74,7 @@ router.delete("/:contactId", authenticate, async (req, res, next) => {
 });
 
 // update contact by id
-router.put("/:contactId", authenticate, async (req, res, next) => {
+router.put("/:contactId", auth, async (req, res, next) => {
   try {
     const contactId = req.params.contactId;
     const { name, email, phone } = req.body;
@@ -115,7 +102,7 @@ router.put("/:contactId", authenticate, async (req, res, next) => {
 });
 
 // Update favorites option contact by id
-router.patch("/:contactId/favorite", authenticate, async (req, res, next) => {
+router.patch("/:contactId/favorite", auth, async (req, res, next) => {
   try {
     const contactId = req.params.contactId;
     const { favorite } = req.body;
