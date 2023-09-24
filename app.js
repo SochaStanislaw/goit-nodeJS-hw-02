@@ -5,6 +5,9 @@ const logger = require("morgan");
 const cors = require("cors");
 const passport = require("passport");
 require("./config/config-passport");
+
+const path = require("path");
+
 const contactsRouter = require("./routes/api/contacts.js");
 // import routes for user
 const usersRouter = require("./routes/api/users.js");
@@ -14,7 +17,12 @@ const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 app.use(logger(formatsLogger));
 app.use(cors());
 app.use(express.json());
+// public works
 app.use(passport.initialize());
+
+app.use(express.static("public"));
+app.use("/avatars", express.static(path.join(__dirname, "public/avatars")));
+
 app.use("/api/contacts", contactsRouter);
 app.use("/api/users", usersRouter);
 app.use((req, res) => {
