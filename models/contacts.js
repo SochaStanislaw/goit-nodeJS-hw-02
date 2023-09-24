@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+
+// schema for contact in phonebook
 const contactSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -14,13 +16,25 @@ const contactSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
 });
 
 const Contact = mongoose.model("contacts", contactSchema);
 
-const listContacts = async () => {
-  return await Contact.find().exec();
+// add pagination
+const listContacts = async (page, limit) => {
+  return await Contact.find()
+    .skip((page - 1) * limit)
+    .limit(limit)
+    .exec();
 };
+
+// const listContacts = async () => {
+//   return await Contact.find().exec();
+// };
 
 const getContactById = async (contactId) => {
   return await Contact.findById({ _id: contactId }).exec();
