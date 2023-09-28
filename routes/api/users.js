@@ -13,6 +13,9 @@ const Jimp = require("jimp");
 const fs = require("fs");
 const upload = require("../../config/config-multer");
 
+const { sendVerifyEmail } = require("../../config/config-nodemailer");
+const { nanoid } = require("nanoid");
+
 // signup user
 router.post("/signup", async (req, res, next) => {
   const { email, password } = req.body;
@@ -34,6 +37,9 @@ router.post("/signup", async (req, res, next) => {
       });
     }
 
+    // make token by nanoid
+    const getVerificationToken = nanoid();
+
     // get avatar
     const gravatarEmail = email.trim().toLowerCase();
     const avatarURL = gravatar.url(gravatarEmail, {
@@ -41,11 +47,20 @@ router.post("/signup", async (req, res, next) => {
       r: "pg",
       d: "robohash",
     });
-    // add avatarURL to new user
-    const newUser = new User({ email, avatarURL });
+
+    // create new user
+    const newUser = new User({
+      email,
+      avatarURL,
+      verificationToken: getVerificationToken,
+    });
+
     // set password
     await newUser.setPassword(password);
     await newUser.save();
+
+    // send email with verify link
+    await sendVerifyEmail({ email, verificationToken: getVerificationToken });
 
     res.status(201).json({
       status: "success",
@@ -55,6 +70,7 @@ router.post("/signup", async (req, res, next) => {
           email: newUser.email,
           subscription: newUser.subscription,
           avatarURL: newUser.avatarURL,
+          verificationToken: newUser.verificationToken,
           // password: newUser.password,
         },
       },
@@ -78,6 +94,13 @@ router.post("/login", async (req, res, next) => {
 
     if (!isPasswordValid) {
       return res.status(401).json({ message: "Email or password is wrong" });
+    }
+
+    // checkout if user verify email
+    if (!user.verify) {
+      return res.status(403).json({
+        message: "You need to verify your email to login for the first time",
+      });
     }
 
     const payload = {
@@ -164,6 +187,51 @@ router.post("/logout", auth, async (req, res, next) => {
     res.status(204).end();
   } catch (error) {
     next(error);
+  }
+});
+
+router.get("/verify/:verificationToken", async (req, res, next) => {
+  try {
+    const { verificationToken } = req.params;
+    const user = await User.findOne({
+      verificationToken: verificationToken,
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    await User.findByIdAndUpdate(user._id, { emailToken: "", verify: true });
+
+    res.json({ message: "Verify all good" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "something gone wrong :(" });
+  }
+});
+
+router.post("/verify", async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (user.verify) {
+      return res
+        .status(400)
+        .json({ message: "Your email is already verified" });
+    }
+
+    if (!user) {
+      return res.status(404).json({ message: "This user does not exist" });
+    }
+
+    await sendVerifyEmail({ email, verificationToken: user.verificationToken });
+    res
+      .status(200)
+      .json({ message: "Checkout your email and click on link to verify!" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "server doesn't like u :(" });
   }
 });
 
